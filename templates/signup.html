@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Taste & Trails Korea{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 400px;
+        padding: 3rem 2.5rem;
+        margin: auto;
+        text-align: center;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .auth-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--seoul-neon-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .auth-subtitle {
+        color: rgba(248, 249, 250, 0.7);
+        margin-bottom: 2.5rem;
+        font-size: 1.1rem;
+    }
+
+    .auth-form {
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+
+    .password-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        color: rgba(248, 249, 250, 0.7);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .password-toggle:hover {
+        color: var(--seoul-neon-blue);
+    }
+
+    .password-toggle input[type="checkbox"] {
+        accent-color: var(--seoul-neon-blue);
+    }
+
+    .auth-submit {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .auth-link {
+        color: rgba(248, 249, 250, 0.8);
+        font-size: 1rem;
+    }
+
+    .auth-link a {
+        color: var(--seoul-neon-blue);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .auth-link a:hover {
+        color: var(--seoul-neon-purple);
+        text-decoration: underline;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card glass-container">
+        <h1 class="auth-title">Join Us</h1>
+        <p class="auth-subtitle">Create your account to start exploring Korea</p>
+
+        <form method="post" action="/signup" class="auth-form">
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                <input type="text" name="username" id="username" class="form-input" 
+                       placeholder="Choose a username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <input type="email" name="email" id="email" class="form-input" 
+                       placeholder="Enter your email address" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input type="password" name="password" id="password" class="form-input" 
+                       placeholder="Create a secure password" required>
+                
+                <label class="password-toggle" onclick="togglePassword('password')">
+                    <input type="checkbox"> Show Password
+                </label>
+            </div>
+
+            <button type="submit" class="btn auth-submit">
+                <i class="fas fa-user-plus"></i>
+                Create Account
+            </button>
+        </form>
+
+        <div class="auth-link">
+            Already have an account? <a href="/login">Sign in here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const checkbox = event.target.querySelector('input[type="checkbox"]') || event.target;
+        
+        if (checkbox.checked) {
+            input.type = 'text';
+        } else {
+            input.type = 'password';
+        }
+    }
+
+    // Focus on first input when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('username').focus();
+    });
+</script>
+{% endblock %} 

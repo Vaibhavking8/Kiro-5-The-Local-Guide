@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - Taste & Trails Korea{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-edit-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .profile-edit-card {
+        width: 100%;
+        max-width: 500px;
+        padding: 3rem 2.5rem;
+        text-align: center;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .profile-edit-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--seoul-neon-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .profile-edit-subtitle {
+        color: rgba(248, 249, 250, 0.7);
+        margin-bottom: 2.5rem;
+        font-size: 1.1rem;
+    }
+
+    .profile-edit-form {
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .password-section {
+        background: rgba(255, 0, 110, 0.05);
+        border: 1px solid rgba(255, 0, 110, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .password-section .form-label {
+        color: var(--seoul-neon-pink);
+    }
+
+    .password-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        color: rgba(248, 249, 250, 0.7);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .password-toggle:hover {
+        color: var(--seoul-neon-pink);
+    }
+
+    .password-toggle input[type="checkbox"] {
+        accent-color: var(--seoul-neon-pink);
+    }
+
+    .password-help {
+        font-size: 0.85rem;
+        color: rgba(248, 249, 250, 0.6);
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+
+    .profile-submit {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--seoul-neon-blue);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .back-link:hover {
+        color: var(--seoul-neon-purple);
+        transform: translateX(-4px);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .profile-edit-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .profile-edit-title {
+            font-size: 2rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <div class="profile-edit-card glass-container">
+        <h1 class="profile-edit-title">Edit Profile</h1>
+        <p class="profile-edit-subtitle">Update your account information</p>
+
+        <form method="post" class="profile-edit-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text" name="username" id="username" class="form-input" 
+                           value="{{ user['username'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" name="email" id="email" class="form-input" 
+                           value="{{ user['email'] }}" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Phone (Optional)
+                    </label>
+                    <input type="text" name="phone" id="phone" class="form-input" 
+                           value="{{ user.get('phone', '') }}" placeholder="Your phone number">
+                </div>
+
+                <div class="form-group">
+                    <label for="address" class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Address (Optional)
+                    </label>
+                    <input type="text" name="address" id="address" class="form-input" 
+                           value="{{ user.get('address', '') }}" placeholder="Your address">
+                </div>
+            </div>
+
+            <div class="password-section">
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i> New Password
+                    </label>
+                    <input type="password" name="password" id="password" class="form-input" 
+                           placeholder="Leave blank to keep current password">
+                    <div class="password-help">
+                        Only enter a password if you want to change it
+                    </div>
+                    
+                    <label class="password-toggle" onclick="togglePassword('password')">
+                        <input type="checkbox"> Show Password
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn profile-submit">
+                <i class="fas fa-save"></i>
+                Update Profile
+            </button>
+        </form>
+
+        <a href="/profile" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Profile
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const checkbox = event.target.querySelector('input[type="checkbox"]') || event.target;
+        
+        if (checkbox.checked) {
+            input.type = 'text';
+        } else {
+            input.type = 'password';
+        }
+    }
+
+    // Focus on first input when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('username').focus();
+        
+        // Add form validation feedback
+        const form = document.querySelector('.profile-edit-form');
+        const inputs = form.querySelectorAll('.form-input');
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.checkValidity()) {
+                    this.style.borderColor = 'var(--seoul-neon-green)';
+                } else {
+                    this.style.borderColor = 'var(--seoul-neon-pink)';
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                if (this.value === '' && !this.required) {
+                    this.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

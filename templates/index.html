@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Taste & Trails Korea{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        animation: fadeInUp 1s ease;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: rgba(248, 249, 250, 0.8);
+        margin-bottom: 3rem;
+        text-align: center;
+        animation: fadeInUp 1s ease 0.2s both;
+    }
+
+    .dashboard {
+        width: 100%;
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 3rem 2rem;
+        animation: fadeInUp 1s ease 0.4s both;
+    }
+
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .recommendation-card {
+        background: var(--seoul-glass-light);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .recommendation-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+        transition: left 0.6s;
+    }
+
+    .recommendation-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        border-color: var(--seoul-neon-blue);
+    }
+
+    .recommendation-card:hover::before {
+        left: 100%;
+    }
+
+    .recommendation-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .recommendation-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .recommendation-card h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        background: var(--seoul-neon-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .recommendation-card .learn-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--seoul-neon-blue);
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .recommendation-card .learn-more:hover {
+        color: var(--seoul-neon-purple);
+        transform: translateX(4px);
+    }
+
+    .chatbot-section {
+        text-align: center;
+        margin: 3rem 0;
+        animation: fadeInUp 1s ease 0.6s both;
+    }
+
+    .chatbot-btn {
+        font-size: 1.25rem;
+        padding: 1rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chatbot-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(10, 15, 28, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .chatbot-modal.active {
+        display: flex;
+    }
+
+    .chatbot-container {
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .chatbot-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--seoul-glass);
+        backdrop-filter: blur(20px);
+        border: 2px solid var(--seoul-neon-blue);
+        color: var(--seoul-neon-blue);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0.75rem;
+        border-radius: 50%;
+        width: 3.5rem;
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+        z-index: 10;
+    }
+
+    .chatbot-close:hover {
+        color: var(--seoul-soft-white);
+        background: var(--seoul-neon-blue);
+        transform: rotate(90deg) scale(1.1);
+        box-shadow: 0 8px 24px rgba(0, 212, 255, 0.5);
+    }
+
+    /* Add a subtle pulse animation to make close button more noticeable */
+    .chatbot-modal.active .chatbot-close {
+        animation: subtlePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes subtlePulse {
+        0%, 100% { 
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+        }
+        50% { 
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
+        }
+    }
+
+    .chatbot-form {
+        margin-bottom: 2rem;
+    }
+
+    .chatbot-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .chatbot-answer {
+        background: var(--seoul-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+        line-height: 1.8;
+        font-size: 1.1rem;
+        text-align: left;
+    }
+
+    .chatbot-answer strong {
+        color: var(--seoul-neon-blue);
+    }
+
+    .chatbot-answer em {
+        color: var(--seoul-neon-green);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .hero-section {
+            padding-left: 2rem; /* Reduce left padding on mobile */
+        }
+
+        .recommendations-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .dashboard {
+            padding: 2rem 1rem;
+        }
+
+        .chatbot-close {
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 3rem;
+            height: 3rem;
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1 class="hero-title">Discover Authentic Korea</h1>
+    <p class="hero-subtitle">
+        Your AI-powered local guide to Korean culture, hidden gems, and authentic experiences beyond the tourist trail
+    </p>
+
+    <div class="dashboard glass-container">
+        <h2>Top Korean Experiences</h2>
+        <div class="recommendations-grid">
+            <div class="recommendation-card">
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #00d4ff 0%, #8338ec 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    🏯
+                </div>
+                <h3>Gyeongbokgung Palace</h3>
+                <p>Experience the grandeur of Joseon Dynasty architecture and witness the changing of the guard ceremony</p>
+                <a href="#" onclick="askAbout('Gyeongbokgung Palace')" class="learn-more">
+                    Explore <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="recommendation-card">
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    🏘️
+                </div>
+                <h3>Bukchon Hanok Village</h3>
+                <p>Wander through traditional Korean houses and experience authentic hanok architecture</p>
+                <a href="#" onclick="askAbout('Bukchon Hanok Village')" class="learn-more">
+                    Explore <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="recommendation-card">
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #06ffa5 0%, #00d4ff 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    🏝️
+                </div>
+                <h3>Jeju Island</h3>
+                <p>Discover Korea's natural paradise with volcanic landscapes and pristine beaches</p>
+                <a href="#" onclick="askAbout('Jeju Island')" class="learn-more">
+                    Explore <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="recommendation-card">
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #ffbe0b 0%, #ff006e 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    🎵
+                </div>
+                <h3>K-pop Culture</h3>
+                <p>Immerse yourself in the global phenomenon of Korean pop music and entertainment</p>
+                <a href="#" onclick="askAbout('K-pop culture')" class="learn-more">
+                    Explore <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="recommendation-card">
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #8338ec 0%, #06ffa5 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    🥘
+                </div>
+                <h3>Korean Cuisine</h3>
+                <p>Taste authentic Korean flavors from street food to traditional fermented dishes</p>
+                <a href="#" onclick="askAbout('Korean food')" class="learn-more">
+                    Explore <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="recommendation-card">
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #00d4ff 0%, #ffbe0b 100%); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    🗼
+                </div>
+                <h3>N Seoul Tower</h3>
+                <p>Enjoy panoramic views of Seoul from this iconic landmark and communication tower</p>
+                <a href="#" onclick="askAbout('N Seoul Tower')" class="learn-more">
+                    Explore <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbot-section">
+        <button class="btn chatbot-btn" onclick="toggleChatbot()">
+            <i class="fas fa-comments"></i>
+            Ask Your Local Guide
+        </button>
+    </div>
+</div>
+
+<!-- Chatbot Modal -->
+<div class="chatbot-modal" id="chatbot-modal">
+    <div class="chatbot-container glass-container">
+        <button class="chatbot-close" onclick="toggleChatbot()">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <h2 style="text-align: center; margin-bottom: 2rem;">
+            <i class="fas fa-robot"></i> Your Korean Local Guide
+        </h2>
+        
+        <form method="post" class="chatbot-form">
+            <input type="text" name="question" class="form-input chatbot-input" 
+                   placeholder="Ask about Korean culture, food, hidden spots, or travel tips..." required>
+            <button type="submit" class="btn" style="width: 100%;">
+                <i class="fas fa-paper-plane"></i>
+                Ask Guide
+            </button>
+        </form>
+        
+        {% if answer %}
+        <div class="chatbot-answer">
+            {{ answer | safe }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleChatbot() {
+        const modal = document.getElementById('chatbot-modal');
+        modal.classList.toggle('active');
+        
+        if (modal.classList.contains('active')) {
+            // Focus on input when modal opens
+            setTimeout(() => {
+                const input = modal.querySelector('input[name="question"]');
+                if (input) input.focus();
+            }, 100);
+        }
+    }
+
+    function askAbout(topic) {
+        // Open chatbot modal and pre-fill with topic
+        const modal = document.getElementById('chatbot-modal');
+        const input = modal.querySelector('input[name="question"]');
+        
+        modal.classList.add('active');
+        if (input) {
+            input.value = `Tell me about ${topic} in Korea`;
+            input.focus();
+        }
+    }
+
+    // Keep modal open after form submission if there's an answer
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if answer %}
+        document.getElementById('chatbot-modal').classList.add('active');
+        {% endif %}
+        
+        // Add smooth scroll to recommendations
+        const cards = document.querySelectorAll('.recommendation-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${0.8 + index * 0.1}s`;
+            card.style.animation = 'fadeInUp 0.6s ease both';
+        });
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('chatbot-modal').classList.remove('active');
+        }
+    });
+</script>
+{% endblock %} 

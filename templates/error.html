@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Taste & Trails Korea{% endblock %}
+
+{% block content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+    <div class="glass-container" style="max-width: 600px; padding: 3rem; text-align: center;">
+        <div style="margin-bottom: 2rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--seoul-neon-pink); margin-bottom: 1rem;"></i>
+            <h1 style="margin-bottom: 1rem;">Oops! Something went wrong</h1>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            {% if error_code %}
+                <div style="font-size: 1.5rem; color: var(--seoul-neon-blue); margin-bottom: 1rem;">
+                    Error {{ error_code }}
+                </div>
+            {% endif %}
+            
+            <p style="font-size: 1.1rem; color: var(--seoul-soft-white); margin-bottom: 1.5rem;">
+                {{ error_message or "An unexpected error occurred. Please try again." }}
+            </p>
+            
+            {% if error_code == '404' %}
+                <p style="color: var(--seoul-muted-blue);">
+                    The page you're looking for doesn't exist or has been moved.
+                </p>
+            {% elif error_code == '503' %}
+                <p style="color: var(--seoul-muted-blue);">
+                    Our services are temporarily unavailable. Please try again in a few moments.
+                </p>
+            {% else %}
+                <p style="color: var(--seoul-muted-blue);">
+                    Don't worry, our team has been notified and is working to fix this issue.
+                </p>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/" class="btn">
+                <i class="fas fa-home"></i>
+                Go Home
+            </a>
+            <button onclick="history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Go Back
+            </button>
+            <button onclick="location.reload()" class="btn btn-secondary">
+                <i class="fas fa-refresh"></i>
+                Try Again
+            </button>
+        </div>
+        
+        {% if error_code in ['500', '503'] %}
+            <div style="margin-top: 2rem; padding: 1rem; background: rgba(255, 0, 110, 0.1); border: 1px solid var(--seoul-neon-pink); border-radius: 12px;">
+                <p style="color: var(--seoul-neon-pink); font-size: 0.9rem; margin: 0;">
+                    <i class="fas fa-info-circle"></i>
+                    If this problem persists, please contact our support team.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Additional error page styles */
+    .btn {
+        min-width: 120px;
+    }
+    
+    @media (max-width: 768px) {
+        .glass-container {
+            margin: 1rem;
+            padding: 2rem 1.5rem;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+        }
+        
+        .btn {
+            min-width: 100px;
+            font-size: 0.9rem;
+            padding: 0.625rem 1rem;
+        }
+    }
+</style>
+{% endblock %}

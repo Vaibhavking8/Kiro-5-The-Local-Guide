@@ -1,0 +1,12 @@
+Flask
+requests
+google-generativeai
+Flask-PyMongo
+passlib
+markdown
+algoliasearch
+# API integrations
+# TasteDive API - cultural recommendations (uses requests)
+# Algolia API - fast search (uses algoliasearch) 
+# Google Maps API - geographic data (uses requests)
+# Gemini API - response generation (uses google-generativeai)

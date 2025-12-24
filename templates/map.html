@@ -1,0 +1,809 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Map - Taste & Trails Korea{% endblock %}
+
+{% block extra_css %}
+<style>
+    .map-page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-top: 0;
+    }
+
+    .map-header {
+        background: var(--seoul-glass);
+        backdrop-filter: blur(30px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        position: relative;
+        z-index: 100;
+    }
+
+    .map-header h1 {
+        font-size: 1.75rem;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    .map-header h1 i {
+        color: var(--seoul-neon-blue);
+    }
+
+    .map-nav-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .map-nav-links .btn-secondary {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .map-container {
+        flex: 1;
+        position: relative;
+        display: flex;
+        height: calc(100vh - 120px);
+    }
+
+    .map-sidebar {
+        width: 350px;
+        background: var(--seoul-glass);
+        backdrop-filter: blur(30px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        overflow-y: auto;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .sidebar-title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--seoul-neon-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .sidebar-title i {
+        color: var(--seoul-neon-blue);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        background: rgba(26, 31, 46, 0.6);
+        border: 2px solid rgba(0, 212, 255, 0.3);
+        border-radius: 12px;
+        color: var(--seoul-soft-white);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--seoul-neon-blue);
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        background: rgba(26, 31, 46, 0.8);
+    }
+
+    .search-input::placeholder {
+        color: rgba(248, 249, 250, 0.5);
+    }
+
+    .search-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .filter-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-label {
+        display: block;
+        color: var(--seoul-neon-blue);
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .checkbox-item:hover {
+        background: rgba(0, 212, 255, 0.1);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        accent-color: var(--seoul-neon-blue);
+        transform: scale(1.1);
+    }
+
+    .checkbox-item i {
+        color: var(--seoul-neon-blue);
+        width: 16px;
+        text-align: center;
+    }
+
+    .results-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .place-item {
+        background: var(--seoul-glass-light);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .place-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+        transition: left 0.6s;
+    }
+
+    .place-item:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2);
+        border-color: var(--seoul-neon-blue);
+    }
+
+    .place-item:hover::before {
+        left: 100%;
+    }
+
+    .place-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        background: var(--seoul-neon-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .place-rating {
+        color: var(--seoul-warm-gold);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .place-context {
+        color: rgba(248, 249, 250, 0.8);
+        font-size: 0.85rem;
+        font-style: italic;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .place-neighborhood {
+        background: var(--seoul-neon-blue);
+        color: var(--seoul-deep-night);
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    #map {
+        flex: 1;
+        min-height: 500px;
+        position: relative;
+    }
+
+    .loading-state {
+        text-align: center;
+        color: rgba(248, 249, 250, 0.7);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .loading-state i {
+        font-size: 2rem;
+        color: var(--seoul-neon-blue);
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .error-state {
+        background: rgba(255, 0, 110, 0.1);
+        border: 1px solid var(--seoul-neon-pink);
+        color: var(--seoul-neon-pink);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .error-state i {
+        margin-right: 0.5rem;
+    }
+
+    /* Custom scrollbar for sidebar */
+    .map-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .map-sidebar::-webkit-scrollbar-track {
+        background: rgba(26, 31, 46, 0.3);
+        border-radius: 3px;
+    }
+
+    .map-sidebar::-webkit-scrollbar-thumb {
+        background: var(--seoul-neon-blue);
+        border-radius: 3px;
+    }
+
+    .map-sidebar::-webkit-scrollbar-thumb:hover {
+        background: var(--seoul-neon-purple);
+    }
+
+    @media (max-width: 768px) {
+        .map-container {
+            flex-direction: column;
+            height: auto;
+        }
+
+        .map-sidebar {
+            width: 100%;
+            max-height: 350px;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #map {
+            min-height: 400px;
+        }
+
+        .map-header {
+            padding: 1rem;
+        }
+
+        .map-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .map-nav-links {
+            gap: 0.5rem;
+        }
+
+        .search-form {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .search-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-page">
+    <div class="map-header">
+        <h1>
+            <i class="fas fa-map"></i>
+            Interactive Korean Map
+        </h1>
+        <div class="map-nav-links">
+            <a href="/" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="/profile" class="btn btn-secondary">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </div>
+    </div>
+    
+    <div class="map-container">
+        <div class="map-sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-search"></i>
+                    Search Korean Places
+                </h3>
+                <div class="search-form">
+                    <input type="text" id="searchInput" class="search-input" 
+                           placeholder="Search for Korean attractions, restaurants...">
+                    <button id="searchBtn" class="btn search-btn">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-filter"></i>
+                    Nearby Amenities
+                </h3>
+                <div class="filter-group">
+                    <label class="filter-label">Show on Map:</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="showRestaurants" checked>
+                            <i class="fas fa-utensils"></i>
+                            Restaurants & Food
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="showLodging" checked>
+                            <i class="fas fa-bed"></i>
+                            Hotels & Lodging
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="showSubway" checked>
+                            <i class="fas fa-subway"></i>
+                            Subway Stations
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="showBus">
+                            <i class="fas fa-bus"></i>
+                            Bus Stops
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-list"></i>
+                    Search Results
+                </h3>
+                <div id="resultsContainer" class="results-container">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner"></i>
+                        <div>Loading Korean attractions...</div>
+                        <div style="font-size: 0.85rem; color: rgba(248, 249, 250, 0.5);">
+                            Discovering authentic local experiences
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let map;
+    let markers = [];
+    let infoWindow;
+    let currentLocation = { lat: 37.5665, lng: 126.9780 }; // Seoul center
+    
+    // Initialize map with Seoul night theme
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: currentLocation,
+            styles: [
+                {
+                    "featureType": "all",
+                    "elementType": "geometry.fill",
+                    "stylers": [{"color": "#1a1f2e"}]
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "geometry",
+                    "stylers": [{"color": "#0a0f1c"}]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "geometry",
+                    "stylers": [{"color": "#2d1b69"}]
+                },
+                {
+                    "featureType": "road",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{"color": "#00d4ff"}]
+                },
+                {
+                    "featureType": "poi",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{"color": "#8338ec"}]
+                },
+                {
+                    "featureType": "administrative",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{"color": "#ff006e"}]
+                }
+            ]
+        });
+        
+        infoWindow = new google.maps.InfoWindow({
+            maxWidth: 300
+        });
+        
+        // Load initial Korean attractions
+        loadKoreanAttractions();
+        
+        // Add click listener for amenity discovery
+        map.addListener('click', function(event) {
+            const clickedLocation = {
+                lat: event.latLng.lat(),
+                lng: event.latLng.lng()
+            };
+            loadNearbyAmenities(clickedLocation);
+        });
+    }
+    
+    // Load Korean attractions with accurate positioning
+    function loadKoreanAttractions(query = 'korean attractions') {
+        showLoading();
+        
+        const params = new URLSearchParams({
+            query: query,
+            lat: currentLocation.lat,
+            lng: currentLocation.lng
+        });
+        
+        fetch(`/api/map/attractions?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayAttractions(data.attractions);
+                    addMarkersToMap(data.attractions, 'attraction');
+                    optimizeMapView(data.attractions);
+                } else {
+                    showError('Failed to load attractions: ' + data.error);
+                }
+            })
+            .catch(error => {
+                showError('Error loading attractions: ' + error.message);
+            });
+    }
+    
+    // Load nearby amenities with cultural context
+    function loadNearbyAmenities(location) {
+        const amenityTypes = getSelectedAmenityTypes();
+        if (amenityTypes.length === 0) return;
+        
+        const params = new URLSearchParams({
+            lat: location.lat,
+            lng: location.lng
+        });
+        
+        amenityTypes.forEach(type => params.append('types', type));
+        
+        fetch(`/api/map/amenities?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addAmenityMarkersToMap(data.amenities, location);
+                } else {
+                    console.error('Failed to load amenities:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading amenities:', error);
+            });
+    }
+    
+    // Optimize map view with clustering
+    function optimizeMapView(locations) {
+        if (locations.length === 0) return;
+        
+        const locationsParam = JSON.stringify(locations);
+        const params = new URLSearchParams({ locations: locationsParam });
+        
+        fetch(`/api/map/optimize-view?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const config = data.map_config;
+                    map.setCenter(config.center);
+                    map.setZoom(config.zoom);
+                    
+                    // Apply clustering if enabled
+                    if (config.clustering.enabled) {
+                        console.log('Clustering enabled for', config.total_locations, 'locations');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error optimizing map view:', error);
+            });
+    }
+    
+    // Display attractions in sidebar
+    function displayAttractions(attractions) {
+        const container = document.getElementById('resultsContainer');
+        
+        if (attractions.length === 0) {
+            container.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-search"></i>
+                    No Korean attractions found for your search.
+                </div>
+            `;
+            return;
+        }
+        
+        const html = attractions.map(attraction => `
+            <div class="place-item" onclick="focusOnPlace(${attraction.location.lat}, ${attraction.location.lng}, '${attraction.name}')">
+                <div class="place-title">${attraction.name}</div>
+                <div class="place-rating">
+                    ${'★'.repeat(Math.floor(attraction.rating))}${'☆'.repeat(5 - Math.floor(attraction.rating))}
+                    ${attraction.rating}/5
+                </div>
+                <div class="place-context">${attraction.cultural_context}</div>
+                <div class="place-neighborhood">${attraction.neighborhood}</div>
+            </div>
+        `).join('');
+        
+        container.innerHTML = html;
+    }
+    
+    // Add attraction markers to map
+    function addMarkersToMap(places, type) {
+        // Clear existing markers
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+        
+        places.forEach(place => {
+            const marker = new google.maps.Marker({
+                position: place.location,
+                map: map,
+                title: place.name,
+                icon: getMarkerIcon(type),
+                animation: google.maps.Animation.DROP
+            });
+            
+            marker.addListener('click', function() {
+                const content = `
+                    <div style="max-width: 280px; font-family: 'Inter', sans-serif;">
+                        <h3 style="color: #00d4ff; margin: 0 0 10px 0; font-size: 1.1rem;">${place.name}</h3>
+                        <div style="margin-bottom: 8px; color: #ffbe0b;">
+                            <strong>Rating:</strong> ${'★'.repeat(Math.floor(place.rating))} ${place.rating}/5
+                        </div>
+                        <div style="margin-bottom: 8px; color: #8338ec;">
+                            <strong>Area:</strong> ${place.neighborhood.toUpperCase()}
+                        </div>
+                        <div style="font-style: italic; color: #f8f9fa; line-height: 1.4; font-size: 0.9rem;">
+                            ${place.cultural_context}
+                        </div>
+                    </div>
+                `;
+                
+                infoWindow.setContent(content);
+                infoWindow.open(map, marker);
+            });
+            
+            markers.push(marker);
+        });
+    }
+    
+    // Add amenity markers to map
+    function addAmenityMarkersToMap(amenitiesByType, centerLocation) {
+        Object.entries(amenitiesByType).forEach(([type, amenities]) => {
+            amenities.forEach(amenity => {
+                const marker = new google.maps.Marker({
+                    position: amenity.location,
+                    map: map,
+                    title: amenity.name,
+                    icon: getAmenityMarkerIcon(type),
+                    animation: google.maps.Animation.DROP
+                });
+                
+                marker.addListener('click', function() {
+                    const content = `
+                        <div style="max-width: 280px; font-family: 'Inter', sans-serif;">
+                            <h3 style="color: #00d4ff; margin: 0 0 10px 0; font-size: 1.1rem;">${amenity.name}</h3>
+                            <div style="margin-bottom: 8px; color: #ff006e;">
+                                <strong>Type:</strong> ${amenity.amenity_type.replace('_', ' ').toUpperCase()}
+                            </div>
+                            <div style="margin-bottom: 8px; color: #ffbe0b;">
+                                <strong>Rating:</strong> ${'★'.repeat(Math.floor(amenity.rating))} ${amenity.rating}/5
+                            </div>
+                            <div style="font-style: italic; color: #f8f9fa; line-height: 1.4; font-size: 0.9rem;">
+                                ${amenity.cultural_context}
+                            </div>
+                        </div>
+                    `;
+                    
+                    infoWindow.setContent(content);
+                    infoWindow.open(map, marker);
+                });
+                
+                markers.push(marker);
+            });
+        });
+    }
+    
+    // Get marker icon based on type
+    function getMarkerIcon(type) {
+        const icons = {
+            'attraction': {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" fill="#00d4ff" stroke="#0a0f1c" stroke-width="2"/>
+                        <text x="16" y="20" text-anchor="middle" fill="#0a0f1c" font-size="16" font-weight="bold">★</text>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(32, 32)
+            },
+            'restaurant': {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" fill="#ff006e" stroke="#0a0f1c" stroke-width="2"/>
+                        <text x="16" y="20" text-anchor="middle" fill="#0a0f1c" font-size="12" font-weight="bold">🍽</text>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(32, 32)
+            },
+            'lodging': {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" fill="#8338ec" stroke="#0a0f1c" stroke-width="2"/>
+                        <text x="16" y="20" text-anchor="middle" fill="#0a0f1c" font-size="12" font-weight="bold">🏨</text>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(32, 32)
+            }
+        };
+        return icons[type] || icons['attraction'];
+    }
+    
+    // Get amenity marker icon
+    function getAmenityMarkerIcon(amenityType) {
+        const icons = {
+            'restaurant': getMarkerIcon('restaurant'),
+            'lodging': getMarkerIcon('lodging'),
+            'subway_station': {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" fill="#06ffa5" stroke="#0a0f1c" stroke-width="2"/>
+                        <text x="16" y="20" text-anchor="middle" fill="#0a0f1c" font-size="12" font-weight="bold">🚇</text>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(32, 32)
+            },
+            'bus_station': {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" fill="#ffbe0b" stroke="#0a0f1c" stroke-width="2"/>
+                        <text x="16" y="20" text-anchor="middle" fill="#0a0f1c" font-size="12" font-weight="bold">🚌</text>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(32, 32)
+            }
+        };
+        return icons[amenityType] || getMarkerIcon('attraction');
+    }
+    
+    // Focus on specific place
+    function focusOnPlace(lat, lng, name) {
+        map.setCenter({ lat, lng });
+        map.setZoom(16);
+        
+        // Find and trigger the marker
+        const marker = markers.find(m => 
+            Math.abs(m.getPosition().lat() - lat) < 0.0001 && 
+            Math.abs(m.getPosition().lng() - lng) < 0.0001
+        );
+        
+        if (marker) {
+            google.maps.event.trigger(marker, 'click');
+        }
+    }
+    
+    // Get selected amenity types
+    function getSelectedAmenityTypes() {
+        const types = [];
+        if (document.getElementById('showRestaurants').checked) types.push('restaurant');
+        if (document.getElementById('showLodging').checked) types.push('lodging');
+        if (document.getElementById('showSubway').checked) types.push('subway_station');
+        if (document.getElementById('showBus').checked) types.push('bus_station');
+        return types;
+    }
+    
+    // Show loading state
+    function showLoading() {
+        document.getElementById('resultsContainer').innerHTML = `
+            <div class="loading-state">
+                <i class="fas fa-spinner"></i>
+                <div>Searching Korean locations...</div>
+                <div style="font-size: 0.85rem; color: rgba(248, 249, 250, 0.5);">
+                    Finding authentic experiences
+                </div>
+            </div>
+        `;
+    }
+    
+    // Show error message
+    function showError(message) {
+        document.getElementById('resultsContainer').innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                ${message}
+            </div>
+        `;
+    }
+    
+    // Event listeners
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query) {
+            loadKoreanAttractions(query);
+        }
+    });
+    
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+    
+    // Initialize when page loads
+    window.onload = function() {
+        // Map will be initialized by Google Maps callback
+    };
+</script>
+
+<script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap">
+</script>
+{% endblock %}
